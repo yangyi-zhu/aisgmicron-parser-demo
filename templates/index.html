@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log Ingestion Pipeline Demo</title>
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <h1>Log Ingestion Pipeline</h1>
+            <p>Watching directory: <code>{{ watch_dir }}</code></p>
+        </div>
+
+        <div class="topbar-actions">
+            <button type="button" id="open-generator-modal">Generate Test Files</button>
+            <button type="submit" form="delete-logs-form" class="danger-button">Delete Selected</button>
+        </div>
+    </header>
+
+    <div id="generator-modal" class="modal-backdrop hidden" aria-hidden="true">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div>
+                    <h2>Generate Test Files</h2>
+                    <p>Choose how many files to create for each vendor format.</p>
+                </div>
+                <button type="button" id="close-generator-modal" class="modal-close" aria-label="Close">x</button>
+            </div>
+
+            <form method="post" action="/generate" class="generator-form" id="generator-form">
+                {% for vendor_id, vendor_label in vendor_options %}
+                <label class="generator-row">
+                    <span>{{ vendor_label }}</span>
+                    <input type="number" min="0" max="100" name="count_{{ vendor_id|lower }}" value="0" />
+                </label>
+                {% endfor %}
+                <div class="modal-actions">
+                    <button type="button" id="cancel-generator" class="secondary-button">Cancel</button>
+                    <button type="submit">Generate Files</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <main class="layout">
+        <aside class="sidebar">
+            <section class="sidebar-section">
+                <h2>Ingested Logs</h2>
+                {% if logs %}
+                <form id="delete-logs-form" method="post" action="/delete" onsubmit="return confirm('Delete the selected log entries and their source files?');">
+                    <label class="select-all-row">
+                        <input type="checkbox" id="select-all-logs" />
+                        <span>Select All</span>
+                    </label>
+                    <ul class="log-list">
+                        {% for log in logs %}
+                        <li class="log-item {% if selected and selected['id'] == log['id'] %}active{% endif %}">
+                            <label class="log-check">
+                                <input type="checkbox" class="log-select" name="log_ids" value="{{ log['id'] }}" />
+                            </label>
+                            <a href="/?log_id={{ log['id'] }}" class="log-link">
+                                <strong>{{ log['source_name'] }}</strong>
+                                <span>{{ log['tool_id'] or 'UNKNOWN TOOL' }}</span>
+                                <span>{{ log['timestamp_iso'] or log['created_at'] }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </form>
+                {% else %}
+                <div class="empty-box">
+                    No data yet. Generate new files or drop logs into the watched directory and the page will refresh automatically.
+                </div>
+                {% endif %}
+            </section>
+        </aside>
+
+        <section class="content">
+            {% if selected %}
+            {% set pc = selected_json['process_context'] if selected_json else {} %}
+            {% set ec = selected_json['event_context'] if selected_json else {} %}
+            {% set nm = selected_json['normalized_metrics'] if selected_json else {} %}
+            {% set vm = selected_json['vendor_metrics'] if selected_json else {} %}
+            {% set extra_metric_keys = [
+                'bias_power_w', 'bias_reflected_w', 'foreline_pressure_torr', 'helium_pressure_psi',
+                'laser_power_mw', 'lens_temp_c', 'pump_temp_c', 'wall_temp_c', 'showerhead_temp_c',
+                'heater_zone_avg_c', 'dose_mj_cm2', 'focus_offset_nm', 'alignment_error_x_nm',
+                'alignment_error_y_nm', 'leveling_z_um', 'stage_x_pos_mm', 'stage_y_pos_mm',
+                'scan_time_ms', 'required_scan_time_ms', 'throttle_valve_angle_deg',
+                'turbo_pump_speed_rpm', 'spindle_speed_rpm'
+            ] %}
+            {% set process_has_data = pc['lot_id'] or pc['wafer_id'] or pc['slot_id'] is not none or pc['step_time_sec'] is not none or pc['uptime_seconds'] is not none %}
+            {% set event_has_data = ec['source_vendor'] or ec['source_format'] or ec['event_id'] or ec['severity'] or ec['event_class'] or ec['status'] or ec['interlock_status'] or ec['raw_message'] %}
+            {% set has_extra_metrics = false %}
+            {% for key in extra_metric_keys %}
+                {% if nm[key] is not none %}
+                    {% set has_extra_metrics = true %}
+                {% endif %}
+            {% endfor %}
+            <div class="panels">
+                <section class="panel">
+                    <div class="panel-header">
+                        <h2>Raw Log</h2>
+                        <span>{{ selected['source_name'] }}</span>
+                    </div>
+                    <pre class="raw-box" id="raw-log-content">{{ selected['raw_content'] }}</pre>
+                </section>
+
+                <section class="panel">
+                    <div class="panel-header panel-header-actions">
+                        <div>
+                            <h2>Standardized Output</h2>
+                            <span>{{ selected['equipment_type'] or 'UNKNOWN' }}</span>
+                        </div>
+                        <button type="button" id="copy-standardized-json" class="secondary-button">Copy JSON</button>
+                    </div>
+
+                    <table class="clean-table">
+                        <tbody>
+                            <tr><th>Timestamp</th><td>{{ selected['timestamp_iso'] or '-' }}</td></tr>
+                            <tr><th>Tool</th><td>{{ selected['tool_id'] or '-' }}</td></tr>
+                            <tr><th>Equipment Type</th><td>{{ selected['equipment_type'] or '-' }}</td></tr>
+                            <tr><th>Recipe</th><td>{{ selected['recipe_name'] or '-' }}</td></tr>
+                            <tr><th>Process Step</th><td>{{ selected['process_step'] or '-' }}</td></tr>
+                            <tr><th>Temperature (C)</th><td>{{ selected['temperature_c'] if selected['temperature_c'] is not none else '-' }}</td></tr>
+                            <tr><th>Pressure (Torr)</th><td>{{ selected['pressure_torr'] if selected['pressure_torr'] is not none else '-' }}</td></tr>
+                            <tr><th>RF Forward (W)</th><td>{{ selected['rf_forward_w'] if selected['rf_forward_w'] is not none else '-' }}</td></tr>
+                            <tr><th>RF Reflected (W)</th><td>{{ selected['rf_reflected_w'] if selected['rf_reflected_w'] is not none else '-' }}</td></tr>
+                            <tr><th>Gas Flow (sccm)</th><td>{{ selected['gas_flow_sccm'] if selected['gas_flow_sccm'] is not none else '-' }}</td></tr>
+                            <tr><th>Alarm</th><td>{% if selected['is_alarm'] == 1 %}Yes{% elif selected['is_alarm'] == 0 %}No{% else %}-{% endif %}</td></tr>
+                            <tr><th>Alarm Code</th><td>{{ selected['alarm_code'] or '-' }}</td></tr>
+                            <tr><th>Health Score</th><td>{{ selected['health_score'] if selected['health_score'] is not none else '-' }}</td></tr>
+                        </tbody>
+                    </table>
+
+                    {% if selected_json %}
+                    <div class="detail-sections">
+                        {% if process_has_data %}
+                        <details class="detail-card" open>
+                            <summary>Process Context</summary>
+                            <table class="clean-table compact-table">
+                                <tbody>
+                                    {% if pc['lot_id'] %}<tr><th>Lot ID</th><td>{{ pc['lot_id'] }}</td></tr>{% endif %}
+                                    {% if pc['wafer_id'] %}<tr><th>Wafer ID</th><td>{{ pc['wafer_id'] }}</td></tr>{% endif %}
+                                    {% if pc['slot_id'] is not none %}<tr><th>Slot ID</th><td>{{ pc['slot_id'] }}</td></tr>{% endif %}
+                                    {% if pc['step_time_sec'] is not none %}<tr><th>Step Time (s)</th><td>{{ pc['step_time_sec'] }}</td></tr>{% endif %}
+                                    {% if pc['uptime_seconds'] is not none %}<tr><th>Uptime (s)</th><td>{{ pc['uptime_seconds'] }}</td></tr>{% endif %}
+                                </tbody>
+                            </table>
+                        </details>
+                        {% endif %}
+
+                        {% if event_has_data %}
+                        <details class="detail-card" open>
+                            <summary>Event Context</summary>
+                            <table class="clean-table compact-table">
+                                <tbody>
+                                    {% if ec['source_vendor'] %}<tr><th>Source Vendor</th><td>{{ ec['source_vendor'] }}</td></tr>{% endif %}
+                                    {% if ec['source_format'] %}<tr><th>Source Format</th><td>{{ ec['source_format'] }}</td></tr>{% endif %}
+                                    {% if ec['event_id'] %}<tr><th>Event ID</th><td>{{ ec['event_id'] }}</td></tr>{% endif %}
+                                    {% if ec['severity'] %}<tr><th>Severity</th><td>{{ ec['severity'] }}</td></tr>{% endif %}
+                                    {% if ec['event_class'] %}<tr><th>Event Class</th><td>{{ ec['event_class'] }}</td></tr>{% endif %}
+                                    {% if ec['status'] %}<tr><th>Status</th><td>{{ ec['status'] }}</td></tr>{% endif %}
+                                    {% if ec['interlock_status'] %}<tr><th>Interlock</th><td>{{ ec['interlock_status'] }}</td></tr>{% endif %}
+                                    {% if ec['raw_message'] %}<tr><th>Raw Message</th><td>{{ ec['raw_message'] }}</td></tr>{% endif %}
+                                </tbody>
+                            </table>
+                        </details>
+                        {% endif %}
+
+                        {% if has_extra_metrics %}
+                        <details class="detail-card">
+                            <summary>Expanded Metrics</summary>
+                            <table class="clean-table compact-table">
+                                <tbody>
+                                    {% for key in extra_metric_keys %}
+                                    {% if nm[key] is not none %}
+                                    <tr>
+                                        <th>{{ key.replace('_', ' ')|title }}</th>
+                                        <td>{{ nm[key] }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </details>
+                        {% endif %}
+
+                        {% if vm %}
+                        <details class="detail-card">
+                            <summary>Vendor Metrics</summary>
+                            <pre class="mini-json-box">{{ vm | tojson(indent=2) }}</pre>
+                        </details>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </section>
+            </div>
+            {% else %}
+            <div class="empty-box">No log is currently selected.</div>
+            {% endif %}
+        </section>
+    </main>
+
+    <script>
+        const refreshIntervalMs = 5000;
+        const generatorStorageKey = "log-ingestion-generator-values";
+        const generatorModalOpenKey = "log-ingestion-generator-open";
+        const generatorModal = document.getElementById("generator-modal");
+        const openGeneratorModalButton = document.getElementById("open-generator-modal");
+        const closeGeneratorModalButton = document.getElementById("close-generator-modal");
+        const cancelGeneratorButton = document.getElementById("cancel-generator");
+        const generatorForm = document.getElementById("generator-form");
+        const generatorInputs = generatorForm ? Array.from(generatorForm.querySelectorAll("input[type='number']")) : [];
+        const selectAllCheckbox = document.getElementById("select-all-logs");
+        const rowCheckboxes = Array.from(document.querySelectorAll(".log-select"));
+        const copyJsonButton = document.getElementById("copy-standardized-json");
+        const standardizedJsonText = {{ (selected['standardized_json'] if selected else '') | tojson }};
+        const rawLogElement = document.getElementById("raw-log-content");
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function highlightRawLog(text) {
+            let html = escapeHtml(text);
+            html = html.replace(/(&lt;[0-9]+&gt;)/g, '<span class="tok-punct">$1</span>');
+            html = html.replace(/(\[[A-Z_]+\])/g, '<span class="tok-tag">$1</span>');
+            html = html.replace(/\b(INFO|WARN|ERROR|CRITICAL|SYSTEM WARNING|SYSTEM EVENT|DEACTIVATE)\b/g, '<span class="tok-keyword">$1</span>');
+            html = html.replace(/\b(Machine|Rel|Tool|UNIT|TS|ALARM_CODE|HEALTH_SCORE|Current scan time|required minimum scan time|Time specified|Minimal time required)(:)/g, '<span class="tok-key">$1</span><span class="tok-punct">$2</span>');
+            html = html.replace(/\b(\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?|\d{2}\/\d{2}\/\d{4}\s+\d{2}:\d{2}:\d{2}\.\d{3})\b/g, '<span class="tok-string">$1</span>');
+            html = html.replace(/\b(-?\d+(?:\.\d+)?)\b/g, '<span class="tok-number">$1</span>');
+            return html;
+        }
+
+        function openGeneratorModal() {
+            if (!generatorModal) return;
+            generatorModal.classList.remove("hidden");
+            generatorModal.setAttribute("aria-hidden", "false");
+            sessionStorage.setItem(generatorModalOpenKey, "true");
+        }
+
+        function closeGeneratorModal() {
+            if (!generatorModal) return;
+            generatorModal.classList.add("hidden");
+            generatorModal.setAttribute("aria-hidden", "true");
+            sessionStorage.removeItem(generatorModalOpenKey);
+        }
+
+        function loadGeneratorValues() {
+            if (!generatorInputs.length) return;
+            const stored = sessionStorage.getItem(generatorStorageKey);
+            if (!stored) return;
+            const values = JSON.parse(stored);
+            generatorInputs.forEach((input) => {
+                if (Object.prototype.hasOwnProperty.call(values, input.name)) {
+                    input.value = values[input.name];
+                }
+            });
+        }
+
+        function persistGeneratorValues() {
+            if (!generatorInputs.length) return;
+            const values = {};
+            generatorInputs.forEach((input) => {
+                values[input.name] = input.value;
+            });
+            sessionStorage.setItem(generatorStorageKey, JSON.stringify(values));
+        }
+
+        function resetGeneratorValues() {
+            sessionStorage.removeItem(generatorStorageKey);
+            sessionStorage.removeItem(generatorModalOpenKey);
+        }
+
+        function hasPendingGeneratorValues() {
+            return generatorInputs.some((input) => Number(input.value || 0) > 0);
+        }
+
+        function hasSelectedRows() {
+            return rowCheckboxes.some((checkbox) => checkbox.checked);
+        }
+
+        function shouldAutoRefresh() {
+            const modalOpen = generatorModal && !generatorModal.classList.contains("hidden");
+            return !modalOpen && !hasPendingGeneratorValues() && !hasSelectedRows();
+        }
+
+        loadGeneratorValues();
+
+        if (sessionStorage.getItem(generatorModalOpenKey) === "true") {
+            openGeneratorModal();
+        }
+
+        if (openGeneratorModalButton) {
+            openGeneratorModalButton.addEventListener("click", openGeneratorModal);
+        }
+
+        if (closeGeneratorModalButton) {
+            closeGeneratorModalButton.addEventListener("click", closeGeneratorModal);
+        }
+
+        if (cancelGeneratorButton) {
+            cancelGeneratorButton.addEventListener("click", closeGeneratorModal);
+        }
+
+        if (generatorModal) {
+            generatorModal.addEventListener("click", (event) => {
+                if (event.target === generatorModal) {
+                    closeGeneratorModal();
+                }
+            });
+        }
+
+        if (generatorForm) {
+            generatorInputs.forEach((input) => {
+                input.addEventListener("input", persistGeneratorValues);
+            });
+
+            generatorForm.addEventListener("submit", () => {
+                resetGeneratorValues();
+            });
+        }
+
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener("change", () => {
+                rowCheckboxes.forEach((checkbox) => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+
+            rowCheckboxes.forEach((checkbox) => {
+                checkbox.addEventListener("change", () => {
+                    selectAllCheckbox.checked = rowCheckboxes.length > 0 && rowCheckboxes.every((item) => item.checked);
+                });
+            });
+        }
+
+        if (copyJsonButton) {
+            copyJsonButton.addEventListener("click", async () => {
+                try {
+                    await navigator.clipboard.writeText(standardizedJsonText);
+                    copyJsonButton.textContent = "Copied";
+                    window.setTimeout(() => {
+                        copyJsonButton.textContent = "Copy JSON";
+                    }, 1500);
+                } catch (error) {
+                    copyJsonButton.textContent = "Copy Failed";
+                    window.setTimeout(() => {
+                        copyJsonButton.textContent = "Copy JSON";
+                    }, 1500);
+                }
+            });
+        }
+
+        if (rawLogElement) {
+            rawLogElement.innerHTML = highlightRawLog(rawLogElement.textContent || "");
+        }
+
+        window.setInterval(() => {
+            if (shouldAutoRefresh()) {
+                window.location.reload();
+            }
+        }, refreshIntervalMs);
+    </script>
+</body>
+</html>

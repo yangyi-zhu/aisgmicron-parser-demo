@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+jinja2
+pandas
+pyarrow
+requests
+python-multipart
+google-genai
+xmltodict

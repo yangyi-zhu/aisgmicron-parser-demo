@@ -1,0 +1,386 @@
+{
+    "alarm_terms": {
+        "cooling water flow rate fluctuation detected": "COOLING_WATER_FLOW_FLUCTUATION",
+        "dw-20e2 default": "DW_20E2_DEFAULT",
+        "dwfmxoa_light_timing_warning": "DWFMxOA_LIGHT_TIMING_WARNING",
+        "er-off default": "ER_OFF_DEFAULT",
+        "gate valve state changed to open": "GATE_VALVE_OPEN",
+        "heater power supply interlock triggered": "HEATER_POWER_SUPPLY_INTERLOCK",
+        "pressure spike": "PRESSURE_SPIKE",
+        "scan time too short to program oasis light trigger": "DW_SCAN_TIME_SHORT",
+        "vacuum pump reached baseline pressure": "VACUUM_BASELINE_REACHED",
+        "wafer centering alignment completed": "ALIGNMENT_COMPLETED",
+        "zone 4 temp low": "ERR-774-HEATER"
+    },
+    "equipment_hints": {
+        "al_dep": "CVD",
+        "alignment": "LITHO",
+        "backside": "METROLOGY",
+        "cf4": "ETCH",
+        "chf3": "ETCH",
+        "cl2": "ETCH",
+        "cvd": "CVD",
+        "deposition": "CVD",
+        "diffusion": "CVD",
+        "dose_mj_cm2": "LITHO",
+        "etch": "ETCH",
+        "furnace": "CVD",
+        "gate valve": "ETCH",
+        "gaspanel_mfc_sccm": "ETCH",
+        "heater": "CVD",
+        "helium": "METROLOGY",
+        "lens_temp_c": "LITHO",
+        "litho": "LITHO",
+        "mask": "LITHO",
+        "metrology": "METROLOGY",
+        "mfc": "ETCH",
+        "n2o": "CVD",
+        "oasis": "LITHO",
+        "poly_gate_etch": "ETCH",
+        "pressure_psi": "METROLOGY",
+        "reticle": "LITHO",
+        "rf_": "ETCH",
+        "scan": "LITHO",
+        "sensor": "METROLOGY",
+        "sih4": "CVD",
+        "sti_etch": "ETCH",
+        "vacuum": "ETCH"
+    },
+    "metric_aliases": {
+        "alignment_error_x_nm": [
+            "alignment_error_x_nm"
+        ],
+        "alignment_error_y_nm": [
+            "alignment_error_y_nm"
+        ],
+        "bias_power_w": [
+            "biaspower_w",
+            "bias_v",
+            "biaspower"
+        ],
+        "bias_reflected_w": [
+            "biasreflected_w"
+        ],
+        "dose_mj_cm2": [
+            "dose_mj_cm2"
+        ],
+        "foreline_pressure_torr": [
+            "foreline_press_torr"
+        ],
+        "focus_offset_nm": [
+            "focus_offset_nm"
+        ],
+        "gas_flow_sccm": [
+            "cf4",
+            "flow_rate_sccm",
+            "gas_sih4_sccm",
+            "mfc_1_flow",
+            "mfc_actual_sccm",
+            "mfc_setpoint_sccm"
+        ],
+        "heater_zone_avg_c": [
+            "heater_zone_1_c",
+            "heater_zone_2_c",
+            "heater_zone_3_c",
+            "heater_zone_4_c"
+        ],
+        "helium_pressure_psi": [
+            "helium_pressure_psi"
+        ],
+        "laser_power_mw": [
+            "laser_power_mw"
+        ],
+        "lens_temp_c": [
+            "lens_temp_c"
+        ],
+        "leveling_z_um": [
+            "leveling_z_um"
+        ],
+        "pressure_torr": [
+            "chamber_press_torr",
+            "chamberpressure_mtorr",
+            "throttle_pos"
+        ],
+        "pump_temp_c": [
+            "pump_temp"
+        ],
+        "required_scan_time_ms": [
+            "minimal_time_required",
+            "required minimum scan time"
+        ],
+        "rf_forward_w": [
+            "rf_high_freq_w",
+            "sourcepower_w"
+        ],
+        "rf_reflected_w": [
+            "rf_low_freq_w",
+            "sourcereflected_w"
+        ],
+        "scan_time_ms": [
+            "current scan time",
+            "time specified"
+        ],
+        "showerhead_temp_c": [
+            "showerhead_temp"
+        ],
+        "spindle_speed_rpm": [
+            "spindle_speed_rpm"
+        ],
+        "stage_x_pos_mm": [
+            "stage_x_pos_mm"
+        ],
+        "stage_y_pos_mm": [
+            "stage_y_pos_mm"
+        ],
+        "temperature_c": [
+            "backside_temp_c",
+            "chamber_temp_c",
+            "esc_temp"
+        ],
+        "throttle_valve_angle_deg": [
+            "throttlevalve_angle",
+            "throttle_pos"
+        ],
+        "turbo_pump_speed_rpm": [
+            "turbopump_speed_rpm"
+        ],
+        "wall_temp_c": [
+            "wall_temp"
+        ]
+    },
+    "source_field_mappings": {
+        "vendor_a": {
+            "event_context.event_id": [
+                "EventHeader.EventID"
+            ],
+            "normalized_metrics.bias_power_w": [
+                "Measurements.RF_System.BiasPower_W"
+            ],
+            "normalized_metrics.bias_reflected_w": [
+                "Measurements.RF_System.BiasReflected_W"
+            ],
+            "normalized_metrics.gas_flow_sccm": [
+                "Measurements.GasPanel_MFC_sccm.CF4"
+            ],
+            "normalized_metrics.pressure_torr": [
+                "Measurements.VacuumSystem.ChamberPressure_mTorr"
+            ],
+            "normalized_metrics.rf_forward_w": [
+                "Measurements.RF_System.SourcePower_W"
+            ],
+            "normalized_metrics.rf_reflected_w": [
+                "Measurements.RF_System.SourceReflected_W"
+            ],
+            "normalized_metrics.showerhead_temp_c": [
+                "Measurements.Temperature_C.Showerhead_Temp"
+            ],
+            "normalized_metrics.temperature_c": [
+                "Measurements.Temperature_C.ESC_Temp"
+            ],
+            "normalized_metrics.throttle_valve_angle_deg": [
+                "Measurements.VacuumSystem.ThrottleValve_Angle"
+            ],
+            "normalized_metrics.turbo_pump_speed_rpm": [
+                "Measurements.VacuumSystem.TurboPump_Speed_RPM"
+            ],
+            "normalized_metrics.wall_temp_c": [
+                "Measurements.Temperature_C.Wall_Temp"
+            ],
+            "process_context.lot_id": [
+                "LotContext.LotID"
+            ],
+            "process_context.slot_id": [
+                "LotContext.SlotID"
+            ],
+            "process_context.step_time_sec": [
+                "LotContext.StepTimeSec"
+            ],
+            "process_context.wafer_id": [
+                "LotContext.WaferID"
+            ]
+        },
+        "vendor_b": {
+            "normalized_metrics.foreline_pressure_torr": [
+                "FORELINE_PRESS_TORR"
+            ],
+            "normalized_metrics.gas_flow_sccm": [
+                "GAS_SIH4_SCCM"
+            ],
+            "normalized_metrics.heater_zone_avg_c": [
+                "HEATER_ZONE_1_C",
+                "HEATER_ZONE_2_C",
+                "HEATER_ZONE_3_C",
+                "HEATER_ZONE_4_C"
+            ],
+            "normalized_metrics.pressure_torr": [
+                "CHAMBER_PRESS_TORR"
+            ],
+            "normalized_metrics.rf_forward_w": [
+                "RF_HIGH_FREQ_W"
+            ],
+            "normalized_metrics.rf_reflected_w": [
+                "RF_LOW_FREQ_W"
+            ],
+            "normalized_metrics.spindle_speed_rpm": [
+                "SPINDLE_SPEED_RPM"
+            ],
+            "normalized_metrics.temperature_c": [
+                "HEATER_ZONE_1_C",
+                "HEATER_ZONE_2_C",
+                "HEATER_ZONE_3_C",
+                "HEATER_ZONE_4_C"
+            ]
+        },
+        "vendor_c": {
+            "normalized_metrics.alignment_error_x_nm": [
+                "Alignment_Error_X_nm"
+            ],
+            "normalized_metrics.alignment_error_y_nm": [
+                "Alignment_Error_Y_nm"
+            ],
+            "normalized_metrics.dose_mj_cm2": [
+                "Dose_mJ_cm2"
+            ],
+            "normalized_metrics.focus_offset_nm": [
+                "Focus_Offset_nm"
+            ],
+            "normalized_metrics.laser_power_mw": [
+                "Laser_Power_mW"
+            ],
+            "normalized_metrics.lens_temp_c": [
+                "Lens_Temp_C"
+            ],
+            "normalized_metrics.leveling_z_um": [
+                "Leveling_Z_um"
+            ],
+            "normalized_metrics.stage_x_pos_mm": [
+                "Stage_X_Pos_mm"
+            ],
+            "normalized_metrics.stage_y_pos_mm": [
+                "Stage_Y_Pos_mm"
+            ],
+            "normalized_metrics.temperature_c": [
+                "Lens_Temp_C"
+            ],
+            "process_context.lot_id": [
+                "Lot"
+            ],
+            "process_context.wafer_id": [
+                "Wafer"
+            ]
+        },
+        "vendor_d": {
+            "event_context.event_id": [
+                "[DWDMxOA_rq_program_light_trigger:DWFMxOA_LIGHT_TIMING_WARNING]"
+            ],
+            "normalized_metrics.required_scan_time_ms": [
+                "required minimum scan time"
+            ],
+            "normalized_metrics.scan_time_ms": [
+                "Current scan time"
+            ]
+        },
+        "vendor_e": {
+            "normalized_metrics.bias_power_w": [
+                "bias_v"
+            ],
+            "normalized_metrics.gas_flow_sccm": [
+                "mfc_1_flow",
+                "mfc_2_flow"
+            ],
+            "normalized_metrics.pressure_torr": [
+                "throttle_pos"
+            ],
+            "normalized_metrics.pump_temp_c": [
+                "pump_temp"
+            ],
+            "normalized_metrics.rf_forward_w": [
+                "fwd_power"
+            ],
+            "normalized_metrics.rf_reflected_w": [
+                "ref_power"
+            ],
+            "normalized_metrics.temperature_c": [
+                "pump_temp"
+            ],
+            "normalized_metrics.throttle_valve_angle_deg": [
+                "throttle_pos"
+            ],
+            "vendor_metrics.bias_voltage_v": [
+                "bias_v"
+            ],
+            "vendor_metrics.cycle_count": [
+                "cycle_count"
+            ],
+            "vendor_metrics.esc_voltage_v": [
+                "esc_voltage"
+            ],
+            "vendor_metrics.status_bits": [
+                "status_bits"
+            ]
+        },
+        "vendor_f": {
+            "event_context.event_class": [
+                "[INFO] message",
+                "[WARN] message",
+                "[ERROR] message",
+                "[CRITICAL] message"
+            ],
+            "event_context.raw_message": [
+                "SEMI_APP message body"
+            ],
+            "event_context.severity": [
+                "SEMI_APP severity"
+            ],
+            "vendor_metrics.host": [
+                "syslog hostname"
+            ],
+            "vendor_metrics.syslog_priority": [
+                "syslog priority"
+            ]
+        },
+        "vendor_g": {
+            "normalized_metrics.gas_flow_sccm": [
+                "mfc_actual_sccm"
+            ],
+            "normalized_metrics.temperature_c": [
+                "chamber_temp_c"
+            ],
+            "process_context.uptime_seconds": [
+                "uptime_seconds"
+            ],
+            "vendor_metrics.gas_leak_test": [
+                "gas_leak_test"
+            ],
+            "vendor_metrics.mfc_setpoint_sccm": [
+                "mfc_setpoint_sccm"
+            ]
+        },
+        "vendor_h": {
+            "normalized_metrics.gas_flow_sccm": [
+                "flow_rate_sccm"
+            ],
+            "normalized_metrics.helium_pressure_psi": [
+                "helium_pressure_psi"
+            ],
+            "normalized_metrics.temperature_c": [
+                "backside_temp_c"
+            ],
+            "vendor_metrics.anomaly_count": [
+                "is_anomaly"
+            ],
+            "vendor_metrics.sensor_id": [
+                "sensor_id"
+            ]
+        }
+    },
+    "status_terms": {
+        "alarm": true,
+        "anomaly": true,
+        "critical": true,
+        "error": true,
+        "interlock": true,
+        "warn": true,
+        "warning": true
+    }
+}
