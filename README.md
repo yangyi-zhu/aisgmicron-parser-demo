@@ -2,7 +2,7 @@
 
 This file only contains testing instructions for running and exercising the demo.
 
-For architecture, parser behavior, schema details, and design notes, read [docs.md](./docs.md).
+For architecture, parser behavior, schema details, and design notes, read our [Design Notes](./design_notes.md).
 
 ## 1. Install Dependencies
 
