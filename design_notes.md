@@ -2,7 +2,7 @@
 
 This document is a deeper companion to `README.md`. It explains how the project is structured, why each file exists, how data moves through the system, and what assumptions each parser makes.
 
-For testing instructions for the demo, please read our [README.md](./README.md).
+For testing instructions for the demo, please read our [README](./README.md).
 
 ## 1. What this project is trying to do
 
